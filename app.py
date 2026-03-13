@@ -5,17 +5,84 @@ import pandas as pd
 # 1. Page Configuration
 st.set_page_config(page_title="Financial Literacy Quiz", page_icon="💰", layout="centered")
 
-# Custom CSS to center text like your design
+# --- UI STYLING TO MATCH TAILWIND REACT APP ---
 st.markdown("""
     <style>
-    .text-center {text-align: center;}
+    /* 1. Hide the default Streamlit top header */
+    [data-testid="stHeader"] {
+        background: transparent;
+    }
+
+    /* 2. Apply the Tailwind Blue Gradient Background */
+    [data-testid="stAppViewContainer"] {
+        background: linear-gradient(to bottom right, #3b82f6, #2563eb, #1d4ed8);
+    }
+
+    /* 3. Create the Mobile-Optimized White Card */
+    .main .block-container {
+        background-color: #ffffff;
+        border-radius: 1rem;
+        padding: 2.5rem 1.5rem !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        max-width: 450px !important; /* Perfect width for mobile apps */
+        margin-top: 5vh;
+        margin-bottom: 5vh;
+        color: #0f172a;
+    }
+
+    /* 4. Center Align Headers */
+    h1, h2, h3, p {
+        text-align: center !important;
+        color: #0f172a;
+    }
+    
+    /* Subtle subtitle color */
+    .subtitle {
+        color: #64748b;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    /* 5. Style the form inputs to look like Tailwind */
+    .stTextInput input, .stSelectbox div[data-baseweb="select"] {
+        border-radius: 0.5rem;
+        border: 1px solid #e2e8f0;
+        padding: 0.2rem;
+        background-color: #f8fafc;
+    }
+
+    /* 6. Style the Primary Button */
+    .stButton > button[kind="primary"] {
+        background-color: #3b82f6;
+        color: white;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border: none;
+    }
+    .stButton > button[kind="primary"]:hover {
+        background-color: #2563eb;
+    }
+    
+    /* 7. Style Secondary Buttons (Myth/Fact) */
+    .stButton > button[kind="secondary"] {
+        border-radius: 0.5rem;
+        border: 2px solid #e2e8f0;
+        color: #334155;
+        font-weight: 600;
+    }
+    .stButton > button[kind="secondary"]:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # 2. Connection to Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# 3. Your 5 Finance Quiz Questions
+# 3. Your Finance Quiz Questions
 quiz_data = [
     {"q": "Credit cards are always bad for your financial health.", "a": False, "exp": "Myth! When used responsibly, they build credit scores and offer rewards."},
     {"q": "Investing in the stock market is the same as gambling.", "a": False, "exp": "Myth! Investing is based on company ownership and long-term growth, not pure chance."},
@@ -34,22 +101,19 @@ if 'step' not in st.session_state:
 # --- PHASE 1: EXACT LANDING PAGE UI ---
 if st.session_state.step == "landing":
     
-    # Optional: Display your NOBIAS logo if you upload it to your repo
-    # To use a real image, uncomment the next 3 lines and add "logo.png" to your folder
+    # Render Logo
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.image("logo.png", use_container_width=True)
+        try:
+            st.image("logo.png", use_container_width=True)
+        except:
+            st.markdown("<h1 style='background-color: #3b82f6; color: white; padding: 10px; border-radius: 8px;'>N Ø B I A S</h1>", unsafe_allow_html=True)
     
-    
-    
-    # Headers
-    st.markdown("<h2 class='text-center'>Financial Literacy Quiz</h2>", unsafe_allow_html=True)
-    st.markdown(f"<p class='text-center' style='color: #666;'>Test your knowledge with {len(quiz_data)} myth vs fact questions</p>", unsafe_allow_html=True)
-    st.write("") # Spacing
+    st.markdown("<h2>Financial Literacy Quiz</h2>", unsafe_allow_html=True)
+    st.markdown(f"<p class='subtitle'>Test your knowledge with {len(quiz_data)} myth vs fact questions</p>", unsafe_allow_html=True)
+    st.write("")
 
-    # The Form
     with st.form("landing_form"):
-        # We use label_visibility="collapsed" to hide the top label and use placeholders instead
         full_name = st.text_input("Name", placeholder="Full Name", label_visibility="collapsed")
         email = st.text_input("Email", placeholder="Email Address", label_visibility="collapsed")
         phone = st.text_input("Phone", placeholder="Phone Number", label_visibility="collapsed")
@@ -66,11 +130,10 @@ if st.session_state.step == "landing":
             label_visibility="collapsed"
         )
         
-        # Full width button
         submit = st.form_submit_button("Start Quiz", type="primary", use_container_width=True)
         
         if submit:
-            if full_name and email:  # Basic check to ensure they don't submit a totally blank form
+            if full_name and email:
                 st.session_state.user_data = {
                     "Full Name": full_name,
                     "Email Address": email,
@@ -90,7 +153,7 @@ elif st.session_state.step == "quiz":
     progress = (st.session_state.index) / len(quiz_data)
     st.progress(progress)
     
-    st.info(f"Question {st.session_state.index + 1} of {len(quiz_data)}")
+    st.markdown(f"<p class='subtitle'>Question {st.session_state.index + 1} of {len(quiz_data)}</p>", unsafe_allow_html=True)
     st.write(f"### {current_q['q']}")
     st.write("")
     
@@ -114,9 +177,9 @@ elif st.session_state.step == "quiz":
 
 # --- PHASE 3: SAVE DIRECTLY TO SHEETS ---
 elif st.session_state.step == "saving":
-    with st.spinner("Saving your results securely..."):
+    st.markdown("<h3>Saving Results...</h3>", unsafe_allow_html=True)
+    with st.spinner("Connecting to secure database..."):
         try:
-            # Read sheet, append data, update sheet
             existing_df = conn.read()
             
             new_row_data = st.session_state.user_data.copy()
@@ -135,10 +198,13 @@ elif st.session_state.step == "saving":
 # --- PHASE 4: COMPLETE ---
 elif st.session_state.step == "complete":
     st.balloons()
+    st.markdown("<h2>Quiz Complete!</h2>", unsafe_allow_html=True)
     st.success(f"Thank you, {st.session_state.user_data.get('Full Name', 'Participant')}!")
+    
     st.metric("Your Final Score", f"{st.session_state.score} / {len(quiz_data)}")
     st.write("Your details and score have been successfully submitted.")
+    st.write("")
     
-    if st.button("Start Over"):
+    if st.button("Start Over (New User)", type="primary", use_container_width=True):
         st.session_state.clear()
         st.rerun()
