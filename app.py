@@ -138,4 +138,78 @@ if st.session_state.step == "landing":
                 st.error("Please provide at least your Full Name and Email Address.")
 
 # --- PHASE 2: QUIZ INTERFACE (UPDATED LOGIC) ---
-    elif st.session_state.step == "quiz":
+elif st.session_state.step == "quiz":
+    current_q = quiz_data[st.session_state.index]
+    
+    progress = (st.session_state.index) / len(quiz_data)
+    st.progress(progress)
+    st.markdown(f"<p class='subtitle'>Question {st.session_state.index + 1} of {len(quiz_data)}</p>", unsafe_allow_html=True)
+    st.write(f"### {current_q['q']}")
+    st.write("")
+    
+    if not st.session_state.answered:
+        col1, col2 = st.columns(2)
+        if col1.button("FACT", use_container_width=True):
+            st.session_state.answered = True
+            st.session_state.user_choice = True
+            st.rerun()
+        if col2.button("MYTH", use_container_width=True):
+            st.session_state.answered = True
+            st.session_state.user_choice = False
+            st.rerun()
+            
+    else:
+        is_correct = (st.session_state.user_choice == current_q['a'])
+        
+        if is_correct:
+            st.success("✅ Correct!")
+            st.balloons()
+        else:
+            st.error("❌ Not quite!")
+            
+        st.info(current_q['exp'])
+        
+        button_text = "Next Question" if st.session_state.index + 1 < len(quiz_data) else "See Final Results"
+        
+        if st.button(button_text, type="primary", use_container_width=True):
+            if is_correct:
+                st.session_state.score += 1
+                
+            st.session_state.answered = False
+            
+            if st.session_state.index + 1 < len(quiz_data):
+                st.session_state.index += 1
+            else:
+                st.session_state.step = "saving"
+            st.rerun()
+
+# --- PHASE 3: SAVE DIRECTLY TO SHEETS ---
+elif st.session_state.step == "saving":
+    st.markdown("<h3>Saving Results...</h3>", unsafe_allow_html=True)
+    with st.spinner("Connecting to secure database..."):
+        try:
+            existing_df = conn.read()
+            new_row_data = st.session_state.user_data.copy()
+            new_row_data["Score"] = st.session_state.score
+            
+            # Timestamp in IST
+            ist = timezone(timedelta(hours=5, minutes=30))
+            new_row_data["updated"] = datetime.now(ist).strftime("%Y-%m-%d %H:%M:%S")
+            
+            new_record = pd.DataFrame([new_row_data])
+            updated_df = pd.concat([existing_df, new_record], ignore_index=True)
+            conn.update(data=updated_df)
+            
+            st.session_state.step = "complete"
+            st.rerun()
+        except Exception as e:
+            st.error("There was an issue saving to the database.")
+            st.write(e)
+
+# --- PHASE 4: COMPLETE ---
+elif st.session_state.step == "complete":
+    st.markdown("<h2>Quiz Complete!</h2>", unsafe_allow_html=True)
+    st.success(f"Thank you, {st.session_state.user_data.get('Full Name', 'Participant')}!")
+    
+    st.metric("Your Final Score", f"{st.session_state.score} / {len(quiz_data)}")
+    st.write("Your details and score have been successfully submitted.")
