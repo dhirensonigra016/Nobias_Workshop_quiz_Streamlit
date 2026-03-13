@@ -138,4 +138,4 @@ if st.session_state.step == "landing":
                 st.error("Please provide at least your Full Name and Email Address.")
 
 # --- PHASE 2: QUIZ INTERFACE (UPDATED LOGIC) ---
-elif st.session_state.step == "quiz":
+    elif st.session_state.step == "quiz":
