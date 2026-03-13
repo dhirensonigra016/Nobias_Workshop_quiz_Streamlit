@@ -8,33 +8,20 @@ st.set_page_config(page_title="Financial Literacy Quiz", page_icon="💰", layou
 # --- UI STYLING TO MATCH TAILWIND REACT APP ---
 st.markdown("""
     <style>
-    /* 1. Hide the default Streamlit top header */
-    [data-testid="stHeader"] {
-        background: transparent !important;
-    }
+    [data-testid="stHeader"] { background: transparent !important; }
+    .stApp { background: linear-gradient(to bottom right, #3b82f6, #2563eb, #1d4ed8) !important; }
 
-    /* 2. Apply the Tailwind Blue Gradient Background to the whole app */
-    .stApp {
-        background: linear-gradient(to bottom right, #3b82f6, #2563eb, #1d4ed8) !important;
-    }
-
-    /* 3. Create the Mobile-Optimized White Card */
     div.block-container {
         background-color: #ffffff !important;
         border-radius: 1rem !important;
         padding: 2.5rem 2rem !important;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-        max-width: 450px !important; /* Perfect width for mobile apps */
-        margin: 4vh auto !important; /* Centers the box */
+        max-width: 450px !important; 
+        margin: 4vh auto !important; 
     }
 
-    /* 4. Center Align Headers & Fix text colors */
-    h1, h2, h3, p {
-        text-align: center !important;
-        color: #0f172a !important; /* Dark text for readability on white */
-    }
+    h1, h2, h3, p { text-align: center !important; color: #0f172a !important; }
     
-    /* Subtle subtitle color */
     .subtitle {
         color: #64748b !important;
         font-size: 0.95rem;
@@ -42,14 +29,12 @@ st.markdown("""
         text-align: center;
     }
 
-    /* 5. Style the form inputs to look like Tailwind */
     div[data-baseweb="input"] > div, div[data-baseweb="select"] > div {
         border-radius: 0.5rem !important;
         border: 1px solid #e2e8f0 !important;
         background-color: #f8fafc !important;
     }
 
-    /* 6. Style the Primary Button */
     div[data-testid="stFormSubmitButton"] > button, 
     div[data-testid="stButton"] > button[kind="primary"] {
         background-color: #3b82f6 !important;
@@ -64,7 +49,6 @@ st.markdown("""
         background-color: #2563eb !important;
     }
     
-    /* 7. Style Secondary Buttons (Myth/Fact) */
     div[data-testid="stButton"] > button[kind="secondary"] {
         border-radius: 0.5rem !important;
         border: 2px solid #e2e8f0 !important;
@@ -97,11 +81,11 @@ if 'step' not in st.session_state:
     st.session_state.index = 0
     st.session_state.score = 0
     st.session_state.user_data = {}
+    st.session_state.answered = False # NEW: Tracks if they have clicked an answer
+    st.session_state.user_choice = None # NEW: Stores what they clicked
 
 # --- PHASE 1: EXACT LANDING PAGE UI ---
 if st.session_state.step == "landing":
-    
-    # Render Logo
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         try:
@@ -117,27 +101,14 @@ if st.session_state.step == "landing":
         full_name = st.text_input("Name", placeholder="Full Name", label_visibility="collapsed")
         email = st.text_input("Email", placeholder="Email Address", label_visibility="collapsed")
         phone = st.text_input("Phone", placeholder="Phone Number", label_visibility="collapsed")
-        
-        age_range = st.selectbox(
-            "Age", 
-            ["Select Age Range", "18-25", "26-35", "36-45", "46-55", "56+"],
-            label_visibility="collapsed"
-        )
-        
-        income_range = st.selectbox(
-            "Income", 
-            ["Monthly Income Range", "Under 25k", "25k - 50k", "50k - 1L", "1L - 2L", "2L+"],
-            label_visibility="collapsed"
-        )
-        
+        age_range = st.selectbox("Age", ["Select Age Range", "18-25", "26-35", "36-45", "46-55", "56+"], label_visibility="collapsed")
+        income_range = st.selectbox("Income", ["Monthly Income Range", "Under 25k", "25k - 50k", "50k - 1L", "1L - 2L", "2L+"], label_visibility="collapsed")
         submit = st.form_submit_button("Start Quiz", type="primary", use_container_width=True)
         
         if submit:
             if full_name and email:
                 st.session_state.user_data = {
-                    "Full Name": full_name,
-                    "Email Address": email,
-                    "Phone Number": phone,
+                    "Full Name": full_name, "Email Address": email, "Phone Number": phone,
                     "Age Range": age_range if age_range != "Select Age Range" else "",
                     "Monthly Income Range": income_range if income_range != "Monthly Income Range" else ""
                 }
@@ -146,34 +117,59 @@ if st.session_state.step == "landing":
             else:
                 st.error("Please provide at least your Full Name and Email Address.")
 
-# --- PHASE 2: QUIZ INTERFACE ---
+# --- PHASE 2: QUIZ INTERFACE (UPDATED LOGIC) ---
 elif st.session_state.step == "quiz":
     current_q = quiz_data[st.session_state.index]
     
     progress = (st.session_state.index) / len(quiz_data)
     st.progress(progress)
-    
     st.markdown(f"<p class='subtitle'>Question {st.session_state.index + 1} of {len(quiz_data)}</p>", unsafe_allow_html=True)
     st.write(f"### {current_q['q']}")
     st.write("")
     
-    col1, col2 = st.columns(2)
-    
-    def process_answer(user_answer):
-        if user_answer == current_q['a']:
-            st.session_state.score += 1
-            st.toast("Correct!", icon="✅")
-        else:
-            st.toast("Not quite!", icon="❌")
+    # If the user hasn't clicked an answer yet, show the buttons
+    if not st.session_state.answered:
+        col1, col2 = st.columns(2)
+        if col1.button("FACT", use_container_width=True):
+            st.session_state.answered = True
+            st.session_state.user_choice = True
+            st.rerun()
+        if col2.button("MYTH", use_container_width=True):
+            st.session_state.answered = True
+            st.session_state.user_choice = False
+            st.rerun()
+            
+    # If the user has clicked an answer, evaluate and show explanation
+    else:
+        is_correct = (st.session_state.user_choice == current_q['a'])
         
-        if st.session_state.index + 1 < len(quiz_data):
-            st.session_state.index += 1
+        if is_correct:
+            st.success("✅ Correct!")
+            st.balloons() # Balloons appear here for every correct answer
         else:
-            st.session_state.step = "saving"
-        st.rerun()
-
-    if col1.button("FACT", use_container_width=True): process_answer(True)
-    if col2.button("MYTH", use_container_width=True): process_answer(False)
+            st.error("❌ Not quite!")
+            
+        # Show the explanation
+        st.info(current_q['exp'])
+        
+        # Determine button text
+        button_text = "Next Question" if st.session_state.index + 1 < len(quiz_data) else "See Final Results"
+        
+        # Advance logic
+        if st.button(button_text, type="primary", use_container_width=True):
+            # Record score
+            if is_correct:
+                st.session_state.score += 1
+                
+            # Reset the answered state for the next question
+            st.session_state.answered = False
+            
+            # Move to next question or save step
+            if st.session_state.index + 1 < len(quiz_data):
+                st.session_state.index += 1
+            else:
+                st.session_state.step = "saving"
+            st.rerun()
 
 # --- PHASE 3: SAVE DIRECTLY TO SHEETS ---
 elif st.session_state.step == "saving":
@@ -181,7 +177,6 @@ elif st.session_state.step == "saving":
     with st.spinner("Connecting to secure database..."):
         try:
             existing_df = conn.read()
-            
             new_row_data = st.session_state.user_data.copy()
             new_row_data["Score"] = st.session_state.score
             
@@ -195,16 +190,11 @@ elif st.session_state.step == "saving":
             st.error("There was an issue saving to the database.")
             st.write(e)
 
-# --- PHASE 4: COMPLETE ---
+# --- PHASE 4: COMPLETE (UPDATED) ---
 elif st.session_state.step == "complete":
-    st.balloons()
     st.markdown("<h2>Quiz Complete!</h2>", unsafe_allow_html=True)
     st.success(f"Thank you, {st.session_state.user_data.get('Full Name', 'Participant')}!")
     
     st.metric("Your Final Score", f"{st.session_state.score} / {len(quiz_data)}")
     st.write("Your details and score have been successfully submitted.")
-    st.write("")
-    
-    if st.button("Start Over (New User)", type="primary", use_container_width=True):
-        st.session_state.clear()
-        st.rerun()
+    # The 'Start Over' button has been intentionally removed here.
