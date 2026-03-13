@@ -10,71 +10,71 @@ st.markdown("""
     <style>
     /* 1. Hide the default Streamlit top header */
     [data-testid="stHeader"] {
-        background: transparent;
+        background: transparent !important;
     }
 
-    /* 2. Apply the Tailwind Blue Gradient Background */
-    [data-testid="stAppViewContainer"] {
-        background: linear-gradient(to bottom right, #3b82f6, #2563eb, #1d4ed8);
+    /* 2. Apply the Tailwind Blue Gradient Background to the whole app */
+    .stApp {
+        background: linear-gradient(to bottom right, #3b82f6, #2563eb, #1d4ed8) !important;
     }
 
     /* 3. Create the Mobile-Optimized White Card */
-    .main .block-container {
-        background-color: #ffffff;
-        border-radius: 1rem;
-        padding: 2.5rem 1.5rem !important;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    div.block-container {
+        background-color: #ffffff !important;
+        border-radius: 1rem !important;
+        padding: 2.5rem 2rem !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
         max-width: 450px !important; /* Perfect width for mobile apps */
-        margin-top: 5vh;
-        margin-bottom: 5vh;
-        color: #0f172a;
+        margin: 4vh auto !important; /* Centers the box */
     }
 
-    /* 4. Center Align Headers */
+    /* 4. Center Align Headers & Fix text colors */
     h1, h2, h3, p {
         text-align: center !important;
-        color: #0f172a;
+        color: #0f172a !important; /* Dark text for readability on white */
     }
     
     /* Subtle subtitle color */
     .subtitle {
-        color: #64748b;
+        color: #64748b !important;
         font-size: 0.95rem;
         margin-bottom: 1.5rem;
         text-align: center;
     }
 
     /* 5. Style the form inputs to look like Tailwind */
-    .stTextInput input, .stSelectbox div[data-baseweb="select"] {
-        border-radius: 0.5rem;
-        border: 1px solid #e2e8f0;
-        padding: 0.2rem;
-        background-color: #f8fafc;
+    div[data-baseweb="input"] > div, div[data-baseweb="select"] > div {
+        border-radius: 0.5rem !important;
+        border: 1px solid #e2e8f0 !important;
+        background-color: #f8fafc !important;
     }
 
     /* 6. Style the Primary Button */
-    .stButton > button[kind="primary"] {
-        background-color: #3b82f6;
-        color: white;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        padding: 0.5rem 1rem;
-        border: none;
+    div[data-testid="stFormSubmitButton"] > button, 
+    div[data-testid="stButton"] > button[kind="primary"] {
+        background-color: #3b82f6 !important;
+        color: white !important;
+        border-radius: 0.5rem !important;
+        font-weight: 600 !important;
+        padding: 0.5rem 1rem !important;
+        border: none !important;
     }
-    .stButton > button[kind="primary"]:hover {
-        background-color: #2563eb;
+    div[data-testid="stFormSubmitButton"] > button:hover, 
+    div[data-testid="stButton"] > button[kind="primary"]:hover {
+        background-color: #2563eb !important;
     }
     
     /* 7. Style Secondary Buttons (Myth/Fact) */
-    .stButton > button[kind="secondary"] {
-        border-radius: 0.5rem;
-        border: 2px solid #e2e8f0;
-        color: #334155;
-        font-weight: 600;
+    div[data-testid="stButton"] > button[kind="secondary"] {
+        border-radius: 0.5rem !important;
+        border: 2px solid #e2e8f0 !important;
+        color: #334155 !important;
+        font-weight: 600 !important;
+        background-color: white !important;
     }
-    .stButton > button[kind="secondary"]:hover {
-        border-color: #3b82f6;
-        color: #3b82f6;
+    div[data-testid="stButton"] > button[kind="secondary"]:hover {
+        border-color: #3b82f6 !important;
+        color: #3b82f6 !important;
     }
     </style>
 """, unsafe_allow_html=True)
