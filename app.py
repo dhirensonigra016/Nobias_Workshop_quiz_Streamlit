@@ -41,7 +41,6 @@ if st.session_state.step == "landing":
         st.image("logo.png", use_container_width=True)
     
     
-    st.markdown("<h1 style='text-align: center; background-color: #3b82f6; color: white; padding: 10px;'>N Ø B I A S</h1>", unsafe_allow_html=True)
     
     # Headers
     st.markdown("<h2 class='text-center'>Financial Literacy Quiz</h2>", unsafe_allow_html=True)
