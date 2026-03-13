@@ -12,14 +12,17 @@ st.markdown("""
     [data-testid="stHeader"] { background: transparent !important; }
     .stApp { background: linear-gradient(to bottom right, #3b82f6, #2563eb, #1d4ed8) !important; }
 
-    /* 1. Hide Streamlit branding and top/bottom menus */
+    /* Hide the top right menu, Fork, and GitHub links */
     [data-testid="stToolbar"] {visibility: hidden !important;}
     [data-testid="stHeader"] {display: none !important;}
-    footer {visibility: hidden !important;}
-    #viewerBadge, .viewerBadge_container, .viewerBadge_link {display: none !important;}
 
-    /* 2. Apply the Tailwind Blue Gradient Background to the whole app */
-    .stApp { background: linear-gradient(to bottom right, #3b82f6, #2563eb, #1d4ed8) !important; }
+    /* Hide the Streamlit footer */
+    footer {visibility: hidden !important;}
+
+    /* Hide the red Streamlit Community Cloud Crown Badge */
+    #viewerBadge {display: none !important;}
+    .viewerBadge_container {display: none !important;}
+    .viewerBadge_link {display: none !important;}
     
     div.block-container {
         background-color: #ffffff !important;
