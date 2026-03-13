@@ -12,6 +12,15 @@ st.markdown("""
     [data-testid="stHeader"] { background: transparent !important; }
     .stApp { background: linear-gradient(to bottom right, #3b82f6, #2563eb, #1d4ed8) !important; }
 
+    /* 1. Hide Streamlit branding and top/bottom menus */
+    [data-testid="stToolbar"] {visibility: hidden !important;}
+    [data-testid="stHeader"] {display: none !important;}
+    footer {visibility: hidden !important;}
+    #viewerBadge, .viewerBadge_container, .viewerBadge_link {display: none !important;}
+
+    /* 2. Apply the Tailwind Blue Gradient Background to the whole app */
+    .stApp { background: linear-gradient(to bottom right, #3b82f6, #2563eb, #1d4ed8) !important; }
+    
     div.block-container {
         background-color: #ffffff !important;
         border-radius: 1rem !important;
