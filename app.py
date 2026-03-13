@@ -38,7 +38,7 @@ if st.session_state.step == "landing":
     # To use a real image, uncomment the next 3 lines and add "logo.png" to your folder
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-    st.image("logo.png", use_container_width=True)
+        st.image("logo.png", use_container_width=True)
     
     
     st.markdown("<h1 style='text-align: center; background-color: #3b82f6; color: white; padding: 10px;'>N Ø B I A S</h1>", unsafe_allow_html=True)
