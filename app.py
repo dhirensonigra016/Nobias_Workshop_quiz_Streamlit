@@ -36,11 +36,11 @@ if st.session_state.step == "landing":
     
     # Optional: Display your NOBIAS logo if you upload it to your repo
     # To use a real image, uncomment the next 3 lines and add "logo.png" to your folder
-    # col1, col2, col3 = st.columns([1, 2, 1])
-    # with col2:
-    #     st.image("logo.png", use_container_width=True)
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+    st.image("logo.png", use_container_width=True)
     
-    # Text-based logo placeholder (remove this if you use the actual image above)
+    
     st.markdown("<h1 style='text-align: center; background-color: #3b82f6; color: white; padding: 10px;'>N Ø B I A S</h1>", unsafe_allow_html=True)
     
     # Headers
