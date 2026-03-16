@@ -90,7 +90,7 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 quiz_data = [
     {"q": "Credit cards are always bad for your financial health.", "a": False, "exp": "Myth! When used responsibly, they build credit scores and offer rewards."},
     {"q": "Investing in the stock market is the same as gambling.", "a": False, "exp": "Myth! Investing is based on company ownership and long-term growth, not pure chance."},
-    {"q": "You need a lot of money to start investing.", "a": False, "exp": "Myth! Many platforms allow you to start with as little as $1."},
+    {"q": "You need a lot of money to start investing.", "a": False, "exp": "Myth! Many platforms allow you to start with as little as INR 1000."},
     {"q": "Inflation reduces the purchasing power of your money over time.", "a": True, "exp": "Fact! This is why investing is crucial to stay ahead of rising costs."},
     {"q": "A higher salary automatically means you are wealthier.", "a": False, "exp": "Myth! Wealth is what you keep (assets), not just what you earn (income)."}
 ]
