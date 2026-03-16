@@ -2,6 +2,7 @@ import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import datetime, timezone, timedelta
+import time
 
 # 1. Page Configuration
 st.set_page_config(page_title="Financial Literacy Quiz", page_icon="💰", layout="centered")
@@ -86,13 +87,11 @@ st.markdown("""
 # 2. Connection to Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# 3. Your Finance Quiz Questions
+# 3. Your Finance Quiz Questions (Syntax fixed!)
 quiz_data = [
-    {"q": "Mutual Funds Sahi Hai. All mutual funds are right for you!", "a": False, "exp": "Myth. NISM clearly states that not every financial product is suitable for every client, and recommendations must be based on the client’s specific needs, goals, and risk profile."},
-    {"q": "Over 5 years Passive (Index) funds give higher returns than 80% of Active managed funds.", "a": True, "exp": "Fact. Industry studies (like SPIVA) show ~70–90% of active funds underperform benchmarks over long periods, supporting the statement."},
-    {"q": "You need a lot of money to start investing.", "a": False, "exp": "Myth! Many platforms allow you to start with as little as INR 1000."},
-    {"q": "Inflation reduces the purchasing power of your money over time.", "a": True, "exp": "Fact! This is why investing is crucial to stay ahead of rising costs."},
-    {"q": "If you are young you should be an aggressive investor.", "a": False, "exp": "Myth. Investment decisions must be based on risk tolerance, goals, financial situation, and life-cycle stage, not age alone."}
+    {"q": "Mutual Funds Sahi Hai. All mutual funds are right for you!", "a": False, "exp": "Myth. According to NISM, 'not every financial product is suitable for every client', and recommendations must be based on the client’s specific needs, goals, and risk profile."},
+    {"q": "Over 5 years Passive (Index) funds give higher returns than 80% of Active managed funds.", "a": True, "exp": "Fact. According to SPIVA® India Year-End 2025, historically, 80% of active funds underperform benchmarks over a 10 year period."},
+    {"q": "If you are young you should be an aggressive investor.", "a": False, "exp": "Myth. According to NISM, investment decisions must be based on 'risk tolerance, goals, financial situation, and life-cycle stage', not age alone."}
 ]
 
 # 4. Initialize Session State
@@ -137,7 +136,7 @@ if st.session_state.step == "landing":
             else:
                 st.error("Please provide at least your Full Name and Email Address.")
 
-# --- PHASE 2: QUIZ INTERFACE (UPDATED LOGIC) ---
+# --- PHASE 2: QUIZ INTERFACE (WITH TIMER) ---
 elif st.session_state.step == "quiz":
     current_q = quiz_data[st.session_state.index]
     
@@ -148,24 +147,54 @@ elif st.session_state.step == "quiz":
     st.write("")
     
     if not st.session_state.answered:
+        # Initialize timer start time
+        if 'start_time' not in st.session_state:
+            st.session_state.start_time = time.time()
+
+        # Placeholder for the timer text
+        timer_placeholder = st.empty()
+        
         col1, col2 = st.columns(2)
         if col1.button("FACT", use_container_width=True):
             st.session_state.answered = True
             st.session_state.user_choice = True
+            st.session_state.pop('start_time', None) # Clear timer
             st.rerun()
+            
         if col2.button("MYTH", use_container_width=True):
             st.session_state.answered = True
             st.session_state.user_choice = False
+            st.session_state.pop('start_time', None) # Clear timer
             st.rerun()
             
+        # The live countdown loop
+        while not st.session_state.answered:
+            elapsed = time.time() - st.session_state.start_time
+            remaining = 20 - int(elapsed)
+            
+            if remaining <= 0:
+                # Time is up!
+                st.session_state.answered = True
+                st.session_state.user_choice = None # Represents a timeout
+                st.session_state.pop('start_time', None)
+                st.rerun()
+                break
+                
+            timer_placeholder.markdown(f"<h3 style='color: #ef4444; margin-top: 0;'>⏳ {remaining}s remaining</h3>", unsafe_allow_html=True)
+            time.sleep(0.5) # Update twice a second
+            
     else:
-        is_correct = (st.session_state.user_choice == current_q['a'])
-        
-        if is_correct:
-            st.success("✅ Correct!")
-            st.balloons()
+        # User has answered OR time ran out
+        if st.session_state.user_choice is None:
+            st.error("⏰ Time's up! You didn't answer fast enough.")
+            is_correct = False
         else:
-            st.error("❌ Not quite!")
+            is_correct = (st.session_state.user_choice == current_q['a'])
+            if is_correct:
+                st.success("✅ Correct!")
+                st.balloons()
+            else:
+                st.error("❌ Not quite!")
             
         st.info(current_q['exp'])
         
