@@ -54,9 +54,9 @@ st.markdown("""
         background-color: #f8fafc !important;
     }
 
-    /* --- NEW FIX: Force Dark Text and Placeholder Colors for Dark Mode Users --- */
+    /* --- NEW FIX: Bulletproof Dark Text for Inputs AND Dropdowns --- */
     div[data-baseweb="input"] input, 
-    div[data-baseweb="select"] span {
+    div[data-baseweb="select"] * {
         color: #0f172a !important;
         -webkit-text-fill-color: #0f172a !important; /* Forces color on iOS/Safari */
     }
@@ -65,6 +65,15 @@ st.markdown("""
         color: #64748b !important;
         -webkit-text-fill-color: #64748b !important;
         opacity: 1 !important;
+    }
+
+    /* Force the opened dropdown menu list to be light with dark text */
+    ul[data-baseweb="menu"] {
+        background-color: #ffffff !important;
+    }
+    ul[data-baseweb="menu"] li, ul[data-baseweb="menu"] li * {
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important;
     }
     /* ------------------------------------------------------------------------- */
 
