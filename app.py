@@ -54,6 +54,20 @@ st.markdown("""
         background-color: #f8fafc !important;
     }
 
+    /* --- NEW FIX: Force Dark Text and Placeholder Colors for Dark Mode Users --- */
+    div[data-baseweb="input"] input, 
+    div[data-baseweb="select"] span {
+        color: #0f172a !important;
+        -webkit-text-fill-color: #0f172a !important; /* Forces color on iOS/Safari */
+    }
+
+    div[data-baseweb="input"] input::placeholder {
+        color: #64748b !important;
+        -webkit-text-fill-color: #64748b !important;
+        opacity: 1 !important;
+    }
+    /* ------------------------------------------------------------------------- */
+
     /* 6. Style the Primary Button */
     div[data-testid="stFormSubmitButton"] > button, 
     div[data-testid="stButton"] > button[kind="primary"] {
@@ -87,7 +101,7 @@ st.markdown("""
 # 2. Connection to Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# 3. Your Finance Quiz Questions (Syntax fixed!)
+# 3. Your Finance Quiz Questions
 quiz_data = [
     {"q": "Mutual Funds Sahi Hai. All mutual funds are right for you!", "a": False, "exp": "Myth. According to NISM, 'not every financial product is suitable for every client', and recommendations must be based on the client’s specific needs, goals, and risk profile."},
     {"q": "Over 5 years Passive (Index) funds give higher returns than 80% of Active managed funds.", "a": True, "exp": "Fact. According to SPIVA® India Year-End 2025, historically, 80% of active funds underperform benchmarks over a 10 year period."},
@@ -158,13 +172,13 @@ elif st.session_state.step == "quiz":
         if col1.button("FACT", use_container_width=True):
             st.session_state.answered = True
             st.session_state.user_choice = True
-            st.session_state.pop('start_time', None) # Clear timer
+            st.session_state.pop('start_time', None)
             st.rerun()
             
         if col2.button("MYTH", use_container_width=True):
             st.session_state.answered = True
             st.session_state.user_choice = False
-            st.session_state.pop('start_time', None) # Clear timer
+            st.session_state.pop('start_time', None)
             st.rerun()
             
         # The live countdown loop
@@ -175,13 +189,13 @@ elif st.session_state.step == "quiz":
             if remaining <= 0:
                 # Time is up!
                 st.session_state.answered = True
-                st.session_state.user_choice = None # Represents a timeout
+                st.session_state.user_choice = None 
                 st.session_state.pop('start_time', None)
                 st.rerun()
                 break
                 
             timer_placeholder.markdown(f"<h3 style='color: #ef4444; margin-top: 0;'>⏳ {remaining}s remaining</h3>", unsafe_allow_html=True)
-            time.sleep(0.5) # Update twice a second
+            time.sleep(0.5) 
             
     else:
         # User has answered OR time ran out
