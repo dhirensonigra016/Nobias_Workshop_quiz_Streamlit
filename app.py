@@ -353,7 +353,7 @@ elif st.session_state.step == "complete":
     st.write("")
     
     # 1. FIXED QR SIZE: Changed column width ratios so the middle column acts as a constraint
-    col1, col2, col3 = st.columns([1.5, 2, 1.5])
+    col1, col2, col3 = st.columns([1.5, 1, 1.5])
     with col2:
         try:
             st.image("qr.png", use_container_width=True)
