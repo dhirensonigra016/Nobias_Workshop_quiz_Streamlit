@@ -372,4 +372,4 @@ elif st.session_state.step == "complete":
         </div>
     """, unsafe_allow_html=True)
     
-    st.success(f"Your details and score have been successfully submitted, {st.session_state.user_data.get('Full Name', 'Participant')}!")
+    st.success(f"We look forward to meeting you on the app, {st.session_state.user_data.get('Full Name', 'Participant')}!")
