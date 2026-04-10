@@ -3,6 +3,24 @@ from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import datetime, timezone, timedelta
 import time
+import streamlit.components.v1 as components # NEW: Imported for scroll script
+
+# --- HELPER FUNCTION: SCROLL TO TOP ---
+def scroll_to_top():
+    """Injects a tiny invisible script to force the browser window to the top."""
+    components.html(
+        """
+        <script>
+            // Scroll the internal Streamlit body
+            var main = window.parent.document.querySelector('.main');
+            if (main) { main.scrollTo(0, 0); }
+            // Scroll the parent browser tab
+            window.parent.scrollTo(0, 0);
+        </script>
+        """,
+        height=0,
+        width=0
+    )
 
 # 1. Page Configuration
 st.set_page_config(page_title="Financial Literacy Quiz", page_icon="💰", layout="centered")
@@ -131,22 +149,15 @@ topics_list = [
 
 # --- SWAP LOGIC FOR THE RANKER ---
 def swap_ranks(changed_topic):
-    """
-    This callback prevents duplicate ranks. 
-    If you move 'Budgeting' to rank 3, it finds what used to be rank 3 and gives it Budgeting's old rank.
-    """
     new_rank = st.session_state[f"select_{changed_topic}"]
     old_rank = st.session_state[f"rank_{changed_topic}"]
     
     if new_rank != old_rank:
-        # Find the topic that currently holds the new_rank
         for t in topics_list:
             if t != changed_topic and st.session_state[f"rank_{t}"] == new_rank:
-                # Swap their internal states
                 st.session_state[f"rank_{t}"] = old_rank
                 st.session_state[f"select_{t}"] = old_rank
                 break
-        # Update the changed topic's internal state
         st.session_state[f"rank_{changed_topic}"] = new_rank
 
 
@@ -163,7 +174,6 @@ if 'step' not in st.session_state:
 if 'ranks_initialized' not in st.session_state:
     st.session_state.ranks_initialized = True
     for i, topic in enumerate(topics_list):
-        # We store both 'rank_' (internal memory) and 'select_' (widget state)
         st.session_state[f"rank_{topic}"] = i + 1
         st.session_state[f"select_{topic}"] = i + 1
 
@@ -218,19 +228,14 @@ elif st.session_state.step == "pre_quiz":
     st.markdown("<p style='text-align: center; font-weight: 600; font-size: 1.05rem; color: #0f172a; margin-bottom: 0.5rem;'>Rank your priority for the following topics</p>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem;'>(1 = Highest, 8 = Lowest. List will sort automatically)</p>", unsafe_allow_html=True)
     
-    # 1. Get the current ranks from session state
     current_ranks = {topic: st.session_state[f"rank_{topic}"] for topic in topics_list}
-    
-    # 2. Sort the topics strictly by their rank
     sorted_topics = sorted(current_ranks.items(), key=lambda x: x[1])
     
-    # 3. Display them dynamically
     for topic, rank in sorted_topics:
         col_text, col_rank = st.columns([3, 1])
         with col_text:
             st.markdown(f"<div style='margin-top: 0.6rem; font-size: 0.95rem; text-align: left; color: #0f172a;'>{topic}</div>", unsafe_allow_html=True)
         with col_rank:
-            # We use on_change to trigger the swapping logic whenever the user touches this widget
             st.selectbox(
                 f"Rank for {topic}", 
                 options=[1, 2, 3, 4, 5, 6, 7, 8], 
@@ -242,7 +247,6 @@ elif st.session_state.step == "pre_quiz":
             
     st.write("") 
     
-    # Start Quiz button
     if st.button("Start Quiz", type="primary", use_container_width=True):
         final_ranks = {topic: st.session_state[f"rank_{topic}"] for topic in topics_list}
         final_sorted = sorted(final_ranks.items(), key=lambda x: x[1])
@@ -250,8 +254,22 @@ elif st.session_state.step == "pre_quiz":
         ranked_string = ", ".join([f"{topic} (Rank {rank})" for topic, rank in final_sorted])
         st.session_state.user_data["Expected Topics Ranking"] = ranked_string
         
-        st.session_state.step = "quiz"
+        # WE NOW SEND THE USER TO THE TRANSITION PAGE FIRST
+        st.session_state.step = "transition"
         st.rerun()
+
+# --- PHASE 1.7: TRANSITION (CLEANS THE DOM AND SCROLLS UP) ---
+elif st.session_state.step == "transition":
+    scroll_to_top() # Calls the JS snippet
+    
+    st.write("")
+    st.write("")
+    st.markdown("<h2 style='text-align: center; color: #3b82f6;'>Preparing your quiz...</h2>", unsafe_allow_html=True)
+    
+    # Give the browser 1 second to completely clear out the ranker list 
+    time.sleep(1) 
+    st.session_state.step = "quiz"
+    st.rerun()
 
 # --- PHASE 2: QUIZ INTERFACE (WITH TIMER) ---
 elif st.session_state.step == "quiz":
@@ -348,12 +366,14 @@ elif st.session_state.step == "saving":
 
 # --- PHASE 4: COMPLETE ---
 elif st.session_state.step == "complete":
+    # Let's make sure the user is scrolled to the top here too!
+    scroll_to_top()
+
     st.markdown("<h2>Thank you for taking the quiz.</h2>", unsafe_allow_html=True)
     st.markdown("<p style='font-size: 1.05rem;'>Kickstart your financial wellbeing journey with the Nobias Artha app now.</p>", unsafe_allow_html=True)
     st.write("")
     
-    # 1. FIXED QR SIZE: Changed column width ratios so the middle column acts as a constraint
-    col1, col2, col3 = st.columns([1.5, 1, 1.5])
+    col1, col2, col3 = st.columns([1.5, 2, 1.5])
     with col2:
         try:
             st.image("qr.png", use_container_width=True)
@@ -362,7 +382,6 @@ elif st.session_state.step == "complete":
             
     st.write("---") 
     
-    # 2. INCREASED SCORE SIZE: Replaced st.metric with custom HTML
     st.markdown(f"""
         <div style="text-align: center; margin-top: 1rem; margin-bottom: 2rem;">
             <p style="font-size: 1.2rem; color: #64748b; margin-bottom: 0;">Your Final Score</p>
