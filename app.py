@@ -164,9 +164,8 @@ if st.session_state.step == "landing":
             else:
                 st.error("Please provide at least your Full Name and Email Address.")
 
-# --- PHASE 1.5: EXPECTATIONS (NEW CHECKLIST PAGE) ---
+# --- PHASE 1.5: EXPECTATIONS (PRIORITY RANKING PAGE) ---
 elif st.session_state.step == "pre_quiz":
-    # Replaced the text header with the logo logic
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         try:
@@ -177,7 +176,7 @@ elif st.session_state.step == "pre_quiz":
     st.write("")
     
     with st.form("expectations_form"):
-        st.markdown("<p style='text-align: center; font-weight: 600; font-size: 1.05rem; color: #0f172a; margin-bottom: 1rem;'>Which financial topics do you expect us to cover in the workshop?</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; font-weight: 600; font-size: 1.05rem; color: #0f172a; margin-bottom: 1.5rem;'>Rank your priority for the following topics (1 = Highest, 8 = Lowest):</p>", unsafe_allow_html=True)
         
         options = [
             "Budgeting", 
@@ -190,24 +189,33 @@ elif st.session_state.step == "pre_quiz":
             "Others"
         ]
         
-        # Create a dictionary to hold the True/False state of each checkbox
-        checkbox_states = {}
+        # Create a dictionary to hold the ranks
+        topic_ranks = {}
         
-        # Loop through the options and render a checkbox for each
-        for option in options:
-            checkbox_states[option] = st.checkbox(option)
+        # Display the topics and a selectbox for ranking side-by-side
+        for i, option in enumerate(options):
+            col_text, col_rank = st.columns([3, 1])
+            with col_text:
+                # Using a div to force left alignment against your global `<p>` center-align CSS
+                st.markdown(f"<div style='margin-top: 0.6rem; font-size: 0.95rem; text-align: left; color: #0f172a;'>{option}</div>", unsafe_allow_html=True)
+            with col_rank:
+                # We default the index so they don't all show "1" by default, just for better UX
+                topic_ranks[option] = st.selectbox(
+                    f"Rank for {option}", 
+                    options=[1, 2, 3, 4, 5, 6, 7, 8], 
+                    index=i, 
+                    label_visibility="collapsed",
+                    key=f"rank_{i}"
+                )
             
-        st.write("") # Add a little spacing before the button
+        st.write("") 
         
-        # Start Quiz button
         start_quiz = st.form_submit_button("Start Quiz", type="primary", use_container_width=True)
         
         if start_quiz:
-            # Filter the dictionary to keep only the topics the user checked (where value is True)
-            selected_topics = [topic for topic, is_checked in checkbox_states.items() if is_checked]
-            
-            # Save the selected topics as a comma-separated string to Google Sheets
-            st.session_state.user_data["Expected Topics"] = ", ".join(selected_topics) if selected_topics else "None selected"
+            # Format the rankings into a neat readable string for your Google Sheet
+            ranked_string = ", ".join([f"{topic}: Rank {rank}" for topic, rank in topic_ranks.items()])
+            st.session_state.user_data["Expected Topics Ranking"] = ranked_string
             st.session_state.step = "quiz"
             st.rerun()
 
@@ -306,8 +314,20 @@ elif st.session_state.step == "saving":
 
 # --- PHASE 4: COMPLETE ---
 elif st.session_state.step == "complete":
-    st.markdown("<h2>Quiz Complete!</h2>", unsafe_allow_html=True)
-    st.success(f"Thank you, {st.session_state.user_data.get('Full Name', 'Participant')}!")
+    # Updated Text block
+    st.markdown("<h2>Thank you for taking the quiz.</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 1.05rem;'>Kickstart your financial wellbeing journey with the Nobias Artha app now.</p>", unsafe_allow_html=True)
+    st.write("")
+    
+    # Render the QR Code prominently in the middle
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        try:
+            st.image("qr.png", use_container_width=True)
+        except Exception:
+            st.error("QR Code image not found.")
+            
+    st.write("---") # Visual divider before the score
     
     st.metric("Your Final Score", f"{st.session_state.score} / {len(quiz_data)}")
-    st.write("Your details and score have been successfully submitted.")
+    st.success(f"Your details and score have been successfully submitted, {st.session_state.user_data.get('Full Name', 'Participant')}!")
