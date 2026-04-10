@@ -235,11 +235,10 @@ elif st.session_state.step == "pre_quiz":
         ranked_string = ", ".join([f"{topic} (Rank {rank})" for topic, rank in final_sorted])
         st.session_state.user_data["Expected Topics Ranking"] = ranked_string
         
-        # CHANGED: Go to the "Ready" screen instead of jumping straight into the timer
         st.session_state.step = "ready_screen"
         st.rerun()
 
-# --- NEW PHASE 1.7: READY SCREEN (CLEARS THE DOM AND FIXES SCROLL) ---
+# --- PHASE 1.7: READY SCREEN (CLEARS THE DOM AND FIXES SCROLL) ---
 elif st.session_state.step == "ready_screen":
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -273,12 +272,10 @@ elif st.session_state.step == "quiz":
         elapsed = time.time() - st.session_state.start_time
         remaining = 20 - int(elapsed)
         
-        # 1. Draw the buttons first
         col1, col2 = st.columns(2)
         fact_pressed = col1.button("FACT", use_container_width=True)
         myth_pressed = col2.button("MYTH", use_container_width=True)
         
-        # 2. Handle the interactions
         if fact_pressed:
             st.session_state.answered = True
             st.session_state.user_choice = True
@@ -291,7 +288,6 @@ elif st.session_state.step == "quiz":
             st.session_state.pop('start_time', None)
             st.rerun()
             
-        # 3. Handle the countdown using native rerun
         if remaining <= 0:
             st.session_state.answered = True
             st.session_state.user_choice = None 
@@ -355,15 +351,14 @@ elif st.session_state.step == "saving":
 # --- PHASE 4: COMPLETE ---
 elif st.session_state.step == "complete":
     st.markdown("<h2>Thank you for taking the quiz.</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 1.05rem;'>Kickstart your financial wellbeing journey with the Nobias Artha app now.</p>", unsafe_allow_html=True)
-    st.write("")
     
-    col1, col2, col3 = st.columns([1.5, 2, 1.5])
-    with col2:
-        try:
-            st.image("qr.png", use_container_width=True)
-        except Exception:
-            st.error("QR Code image not found.")
+    # Updated hyperlinked CTA on two lines without the QR code
+    st.markdown("""
+        <p style='font-size: 1.05rem; margin-bottom: 2rem;'>
+            Kickstart your financial wellbeing journey with Nobias.<br>
+            <a href='https://www.nobias.in/app' target='_blank' style='color: #3b82f6; font-weight: 600; text-decoration: none;'>Download the app now</a>
+        </p>
+    """, unsafe_allow_html=True)
             
     st.write("---") 
     
@@ -377,3 +372,14 @@ elif st.session_state.step == "complete":
     """, unsafe_allow_html=True)
     
     st.success(f"We look forward to meeting you on the app, {st.session_state.user_data.get('Full Name', 'Participant')}!")
+
+
+# --- GLOBAL APP FOOTER ---
+# This block lives outside the if/elif conditions, meaning it renders at the bottom of EVERY page.
+st.markdown("""
+    <div style='text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;'>
+        <a href='https://www.nobias.in/app' target='_blank' style='color: #3b82f6; font-weight: 600; font-size: 0.95rem; text-decoration: none;'>
+            Download the Nobias Artha app now
+        </a>
+    </div>
+""", unsafe_allow_html=True)
