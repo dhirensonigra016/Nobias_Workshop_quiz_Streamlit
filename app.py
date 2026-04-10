@@ -3,24 +3,6 @@ from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import datetime, timezone, timedelta
 import time
-import streamlit.components.v1 as components # NEW: Imported for scroll script
-
-# --- HELPER FUNCTION: SCROLL TO TOP ---
-def scroll_to_top():
-    """Injects a tiny invisible script to force the browser window to the top."""
-    components.html(
-        """
-        <script>
-            // Scroll the internal Streamlit body
-            var main = window.parent.document.querySelector('.main');
-            if (main) { main.scrollTo(0, 0); }
-            // Scroll the parent browser tab
-            window.parent.scrollTo(0, 0);
-        </script>
-        """,
-        height=0,
-        width=0
-    )
 
 # 1. Page Configuration
 st.set_page_config(page_title="Financial Literacy Quiz", page_icon="💰", layout="centered")
@@ -160,7 +142,6 @@ def swap_ranks(changed_topic):
                 break
         st.session_state[f"rank_{changed_topic}"] = new_rank
 
-
 # 4. Initialize Session State
 if 'step' not in st.session_state:
     st.session_state.step = "landing"
@@ -254,24 +235,10 @@ elif st.session_state.step == "pre_quiz":
         ranked_string = ", ".join([f"{topic} (Rank {rank})" for topic, rank in final_sorted])
         st.session_state.user_data["Expected Topics Ranking"] = ranked_string
         
-        # WE NOW SEND THE USER TO THE TRANSITION PAGE FIRST
-        st.session_state.step = "transition"
+        st.session_state.step = "quiz"
         st.rerun()
 
-# --- PHASE 1.7: TRANSITION (CLEANS THE DOM AND SCROLLS UP) ---
-elif st.session_state.step == "transition":
-    scroll_to_top() # Calls the JS snippet
-    
-    st.write("")
-    st.write("")
-    st.markdown("<h2 style='text-align: center; color: #3b82f6;'>Preparing your quiz...</h2>", unsafe_allow_html=True)
-    
-    # Give the browser 1 second to completely clear out the ranker list 
-    time.sleep(1) 
-    st.session_state.step = "quiz"
-    st.rerun()
-
-# --- PHASE 2: QUIZ INTERFACE (WITH TIMER) ---
+# --- PHASE 2: QUIZ INTERFACE (NATIVE NON-BLOCKING TIMER) ---
 elif st.session_state.step == "quiz":
     current_q = quiz_data[st.session_state.index]
     
@@ -284,35 +251,39 @@ elif st.session_state.step == "quiz":
     if not st.session_state.answered:
         if 'start_time' not in st.session_state:
             st.session_state.start_time = time.time()
-
-        timer_placeholder = st.empty()
+            
+        elapsed = time.time() - st.session_state.start_time
+        remaining = 20 - int(elapsed)
         
+        # 1. Draw the buttons first
         col1, col2 = st.columns(2)
-        if col1.button("FACT", use_container_width=True):
+        fact_pressed = col1.button("FACT", use_container_width=True)
+        myth_pressed = col2.button("MYTH", use_container_width=True)
+        
+        # 2. Handle the interactions
+        if fact_pressed:
             st.session_state.answered = True
             st.session_state.user_choice = True
             st.session_state.pop('start_time', None)
             st.rerun()
             
-        if col2.button("MYTH", use_container_width=True):
+        if myth_pressed:
             st.session_state.answered = True
             st.session_state.user_choice = False
             st.session_state.pop('start_time', None)
             st.rerun()
             
-        while not st.session_state.answered:
-            elapsed = time.time() - st.session_state.start_time
-            remaining = 20 - int(elapsed)
-            
-            if remaining <= 0:
-                st.session_state.answered = True
-                st.session_state.user_choice = None 
-                st.session_state.pop('start_time', None)
-                st.rerun()
-                break
-                
-            timer_placeholder.markdown(f"<h3 style='color: #ef4444; margin-top: 0;'>⏳ {remaining}s remaining</h3>", unsafe_allow_html=True)
-            time.sleep(0.5) 
+        # 3. Handle the countdown using native rerun
+        if remaining <= 0:
+            st.session_state.answered = True
+            st.session_state.user_choice = None 
+            st.session_state.pop('start_time', None)
+            st.rerun()
+        else:
+            st.markdown(f"<h3 style='color: #ef4444; margin-top: 1rem;'>⏳ {remaining}s remaining</h3>", unsafe_allow_html=True)
+            # Sleep briefly, then cleanly restart the page logic to update the clock
+            time.sleep(1)
+            st.rerun()
             
     else:
         if st.session_state.user_choice is None:
@@ -366,9 +337,6 @@ elif st.session_state.step == "saving":
 
 # --- PHASE 4: COMPLETE ---
 elif st.session_state.step == "complete":
-    # Let's make sure the user is scrolled to the top here too!
-    scroll_to_top()
-
     st.markdown("<h2>Thank you for taking the quiz.</h2>", unsafe_allow_html=True)
     st.markdown("<p style='font-size: 1.05rem;'>Kickstart your financial wellbeing journey with the Nobias Artha app now.</p>", unsafe_allow_html=True)
     st.write("")
@@ -391,4 +359,4 @@ elif st.session_state.step == "complete":
         </div>
     """, unsafe_allow_html=True)
     
-    st.success(f"We look forward to meeting you on the app, {st.session_state.user_data.get('Full Name', 'Participant')}!")
+st.success(f"We look forward to meeting you on the app, {st.session_state.user_data.get('Full Name', 'Participant')}!")
