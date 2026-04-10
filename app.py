@@ -235,6 +235,24 @@ elif st.session_state.step == "pre_quiz":
         ranked_string = ", ".join([f"{topic} (Rank {rank})" for topic, rank in final_sorted])
         st.session_state.user_data["Expected Topics Ranking"] = ranked_string
         
+        # CHANGED: Go to the "Ready" screen instead of jumping straight into the timer
+        st.session_state.step = "ready_screen"
+        st.rerun()
+
+# --- NEW PHASE 1.7: READY SCREEN (CLEARS THE DOM AND FIXES SCROLL) ---
+elif st.session_state.step == "ready_screen":
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        try:
+            st.image("logo.png", use_container_width=True)
+        except:
+            st.markdown("<h1 style='background-color: #3b82f6; color: white; padding: 10px; border-radius: 8px;'>N Ø B I A S</h1>", unsafe_allow_html=True)
+            
+    st.markdown("<h2>Get Ready!</h2>", unsafe_allow_html=True)
+    st.markdown("<p class='subtitle'>You will have 20 seconds to answer each question.</p>", unsafe_allow_html=True)
+    st.write("")
+    
+    if st.button("Start Question 1", type="primary", use_container_width=True):
         st.session_state.step = "quiz"
         st.rerun()
 
@@ -280,8 +298,7 @@ elif st.session_state.step == "quiz":
             st.session_state.pop('start_time', None)
             st.rerun()
         else:
-            st.markdown(f"<h3 style='color: #ef4444; margin-top: 1rem;'>⏳ {remaining}s remaining</h3>", unsafe_allow_html=True)
-            # Sleep briefly, then cleanly restart the page logic to update the clock
+            st.markdown(f"<h3 style='color: #ef4444; margin-top: 1rem; text-align: center;'>⏳ {remaining}s remaining</h3>", unsafe_allow_html=True)
             time.sleep(1)
             st.rerun()
             
@@ -359,4 +376,4 @@ elif st.session_state.step == "complete":
         </div>
     """, unsafe_allow_html=True)
     
-st.success(f"We look forward to meeting you on the app, {st.session_state.user_data.get('Full Name', 'Participant')}!")
+    st.success(f"We look forward to meeting you on the app, {st.session_state.user_data.get('Full Name', 'Participant')}!")
