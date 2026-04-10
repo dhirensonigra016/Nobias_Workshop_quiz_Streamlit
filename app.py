@@ -143,12 +143,10 @@ if st.session_state.step == "landing":
         full_name = st.text_input("Name", placeholder="Full Name", label_visibility="collapsed")
         email = st.text_input("Email", placeholder="Email Address", label_visibility="collapsed")
         phone = st.text_input("Phone", placeholder="Phone Number", label_visibility="collapsed")
-        # Added the Organization field
         organization = st.text_input("Organization", placeholder="Organization Name", label_visibility="collapsed")
         age_range = st.selectbox("Age", ["Select Age Range", "18-25", "26-35", "36-45", "46-55", "56+"], label_visibility="collapsed")
         income_range = st.selectbox("Income", ["Monthly Income Range", "Under 25k", "25k - 50k", "50k - 1L", "1L - 2L", "2L+"], label_visibility="collapsed")
         
-        # Changed button text from "Start Quiz" to "Next"
         submit = st.form_submit_button("Next", type="primary", use_container_width=True)
         
         if submit:
@@ -157,11 +155,10 @@ if st.session_state.step == "landing":
                     "Full Name": full_name, 
                     "Email Address": email, 
                     "Phone Number": phone,
-                    "Organization": organization, # Storing the new input
+                    "Organization": organization,
                     "Age Range": age_range if age_range != "Select Age Range" else "",
                     "Monthly Income Range": income_range if income_range != "Monthly Income Range" else ""
                 }
-                # Redirect to the new expectations page instead of the quiz
                 st.session_state.step = "pre_quiz"
                 st.rerun()
             else:
@@ -169,11 +166,18 @@ if st.session_state.step == "landing":
 
 # --- PHASE 1.5: EXPECTATIONS (NEW CHECKLIST PAGE) ---
 elif st.session_state.step == "pre_quiz":
-    st.markdown("<h2>Workshop Expectations</h2>", unsafe_allow_html=True)
+    # Replaced the text header with the logo logic
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        try:
+            st.image("logo.png", use_container_width=True)
+        except:
+            st.markdown("<h1 style='background-color: #3b82f6; color: white; padding: 10px; border-radius: 8px;'>N Ø B I A S</h1>", unsafe_allow_html=True)
+            
     st.write("")
     
     with st.form("expectations_form"):
-        st.write("**Which financial topics do you expect us to cover in the workshop?**")
+        st.markdown("<p style='text-align: center; font-weight: 600; font-size: 1.05rem; color: #0f172a; margin-bottom: 1rem;'>Which financial topics do you expect us to cover in the workshop?</p>", unsafe_allow_html=True)
         
         options = [
             "Budgeting", 
@@ -186,18 +190,22 @@ elif st.session_state.step == "pre_quiz":
             "Others"
         ]
         
-        # A multiselect acts as a clean checklist for users to pick multiple topics
-        selected_topics = st.multiselect(
-            "Select topics", 
-            options, 
-            label_visibility="collapsed", 
-            placeholder="Select all that apply..."
-        )
+        # Create a dictionary to hold the True/False state of each checkbox
+        checkbox_states = {}
         
-        # New Start Quiz button
+        # Loop through the options and render a checkbox for each
+        for option in options:
+            checkbox_states[option] = st.checkbox(option)
+            
+        st.write("") # Add a little spacing before the button
+        
+        # Start Quiz button
         start_quiz = st.form_submit_button("Start Quiz", type="primary", use_container_width=True)
         
         if start_quiz:
+            # Filter the dictionary to keep only the topics the user checked (where value is True)
+            selected_topics = [topic for topic, is_checked in checkbox_states.items() if is_checked]
+            
             # Save the selected topics as a comma-separated string to Google Sheets
             st.session_state.user_data["Expected Topics"] = ", ".join(selected_topics) if selected_topics else "None selected"
             st.session_state.step = "quiz"
@@ -214,11 +222,9 @@ elif st.session_state.step == "quiz":
     st.write("")
     
     if not st.session_state.answered:
-        # Initialize timer start time
         if 'start_time' not in st.session_state:
             st.session_state.start_time = time.time()
 
-        # Placeholder for the timer text
         timer_placeholder = st.empty()
         
         col1, col2 = st.columns(2)
@@ -234,13 +240,11 @@ elif st.session_state.step == "quiz":
             st.session_state.pop('start_time', None)
             st.rerun()
             
-        # The live countdown loop
         while not st.session_state.answered:
             elapsed = time.time() - st.session_state.start_time
             remaining = 20 - int(elapsed)
             
             if remaining <= 0:
-                # Time is up!
                 st.session_state.answered = True
                 st.session_state.user_choice = None 
                 st.session_state.pop('start_time', None)
@@ -251,7 +255,6 @@ elif st.session_state.step == "quiz":
             time.sleep(0.5) 
             
     else:
-        # User has answered OR time ran out
         if st.session_state.user_choice is None:
             st.error("⏰ Time's up! You didn't answer fast enough.")
             is_correct = False
@@ -288,7 +291,6 @@ elif st.session_state.step == "saving":
             new_row_data = st.session_state.user_data.copy()
             new_row_data["Score"] = st.session_state.score
             
-            # Timestamp in IST
             ist = timezone(timedelta(hours=5, minutes=30))
             new_row_data["updated"] = datetime.now(ist).strftime("%Y-%m-%d %H:%M:%S")
             
