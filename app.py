@@ -143,21 +143,65 @@ if st.session_state.step == "landing":
         full_name = st.text_input("Name", placeholder="Full Name", label_visibility="collapsed")
         email = st.text_input("Email", placeholder="Email Address", label_visibility="collapsed")
         phone = st.text_input("Phone", placeholder="Phone Number", label_visibility="collapsed")
+        # Added the Organization field
+        organization = st.text_input("Organization", placeholder="Organization Name", label_visibility="collapsed")
         age_range = st.selectbox("Age", ["Select Age Range", "18-25", "26-35", "36-45", "46-55", "56+"], label_visibility="collapsed")
         income_range = st.selectbox("Income", ["Monthly Income Range", "Under 25k", "25k - 50k", "50k - 1L", "1L - 2L", "2L+"], label_visibility="collapsed")
-        submit = st.form_submit_button("Start Quiz", type="primary", use_container_width=True)
+        
+        # Changed button text from "Start Quiz" to "Next"
+        submit = st.form_submit_button("Next", type="primary", use_container_width=True)
         
         if submit:
             if full_name and email:
                 st.session_state.user_data = {
-                    "Full Name": full_name, "Email Address": email, "Phone Number": phone,
+                    "Full Name": full_name, 
+                    "Email Address": email, 
+                    "Phone Number": phone,
+                    "Organization": organization, # Storing the new input
                     "Age Range": age_range if age_range != "Select Age Range" else "",
                     "Monthly Income Range": income_range if income_range != "Monthly Income Range" else ""
                 }
-                st.session_state.step = "quiz"
+                # Redirect to the new expectations page instead of the quiz
+                st.session_state.step = "pre_quiz"
                 st.rerun()
             else:
                 st.error("Please provide at least your Full Name and Email Address.")
+
+# --- PHASE 1.5: EXPECTATIONS (NEW CHECKLIST PAGE) ---
+elif st.session_state.step == "pre_quiz":
+    st.markdown("<h2>Workshop Expectations</h2>", unsafe_allow_html=True)
+    st.write("")
+    
+    with st.form("expectations_form"):
+        st.write("**Which financial topics do you expect us to cover in the workshop?**")
+        
+        options = [
+            "Budgeting", 
+            "Savings & Expense Planning", 
+            "Compounding", 
+            "Debt Management", 
+            "Investment Planning (including mutual fund basics)", 
+            "Goal-based financial planning & SMART goals", 
+            "Emergency funds and insurance basics", 
+            "Others"
+        ]
+        
+        # A multiselect acts as a clean checklist for users to pick multiple topics
+        selected_topics = st.multiselect(
+            "Select topics", 
+            options, 
+            label_visibility="collapsed", 
+            placeholder="Select all that apply..."
+        )
+        
+        # New Start Quiz button
+        start_quiz = st.form_submit_button("Start Quiz", type="primary", use_container_width=True)
+        
+        if start_quiz:
+            # Save the selected topics as a comma-separated string to Google Sheets
+            st.session_state.user_data["Expected Topics"] = ", ".join(selected_topics) if selected_topics else "None selected"
+            st.session_state.step = "quiz"
+            st.rerun()
 
 # --- PHASE 2: QUIZ INTERFACE (WITH TIMER) ---
 elif st.session_state.step == "quiz":
