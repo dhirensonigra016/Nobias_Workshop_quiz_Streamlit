@@ -356,7 +356,7 @@ elif st.session_state.step == "complete":
     col1, col2, col3 = st.columns([1.5, 2, 1.5])
     with col2:
         try:
-            st.image("qr.jpg", use_container_width=True)
+            st.image("qr.png", use_container_width=True)
         except Exception:
             st.error("QR Code image not found.")
             
